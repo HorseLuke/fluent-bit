@@ -209,6 +209,35 @@ static inline uint64_t calc_diff(struct netif_entry *entry)
 }
 
 #define LINE_LEN 256
+
+static int parse_proc_line_before_fix_colon_kernel_2_x(char *line)
+{
+    char *finded = NULL;
+    uintptr_t finded_pos;
+    size_t line_length;
+
+    finded = strchr(line, ':');
+    if(finded == NULL){
+        return -1;
+    }
+
+    line_length = strlen(line);
+
+    if(line_length + 2 > LINE_LEN){
+        return -2;
+    }
+
+    finded_pos = finded - line;
+
+    memmove(line + finded_pos + 1, line + finded_pos, line_length - finded_pos);
+    line[line_length + 1] = '\0';
+    line[finded_pos + 1] = ' ';
+
+    return 0;
+
+}
+
+
 static int in_netif_collect_linux(struct flb_input_instance *i_ins,
                            struct flb_config *config, void *in_context)
 {
@@ -228,7 +257,12 @@ static int in_netif_collect_linux(struct flb_input_instance *i_ins,
         return -1;
     }
     while(fgets(line, LINE_LEN-1, fp) != NULL){
+        if(parse_proc_line_before_fix_colon_kernel_2_x(line) != 0){
+             continue;
+        }
+
         parse_proc_line(line, ctx);
+
     }
 
     if (ctx->first_snapshot == FLB_TRUE) {
