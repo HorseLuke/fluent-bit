@@ -229,7 +229,7 @@ static int parse_proc_line_before_fix_colon_kernel_2_x(char *line)
 
     finded_pos = finded - line;
 
-    memmove(line + finded_pos + 1, line + finded_pos, line_length - finded_pos);
+    memmove(finded+ 1,  finded, line_length - finded_pos);
     line[line_length + 1] = '\0';
     line[finded_pos + 1] = ' ';
 
